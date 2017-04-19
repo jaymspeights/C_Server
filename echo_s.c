@@ -14,19 +14,45 @@
 #include <unistd.h>
 #include <errno.h>
 
+
+
+//hard-coded port for server -> log_server communication
+int log_portno = 9999;
+
 void error(const char *msg) {
      perror(msg);
      exit(1);
 }
 
-void doStuffTCP(char buff[]) {
-     //implement echo
-     //log message
+void log(char msg[], int len) {
+  //send message to log server
 }
 
-void doStuffUDP(char buff[]) {
-     //implement echo
-     //log message
+void doStuffTCP(int fd, char buff[], int buff_len) {
+  int n;
+  bzero(buff,buff_len);
+  if ((n = read(fd,buff,buff_len-1)) < 0)
+       error("ERROR reading from socket");
+  //echo msg
+  write(fd, buff, n);
+  //log message
+
+  close(fd);
+}
+
+void doStuffUDP(int fd, char buff[], int buff_len) {
+  struct sockaddr_in remote;
+  int len;
+
+  bzero(buff,buff_len);
+  len = recvfrom(fd, buff, buff_len - 1, 0, (struct sockaddr *)&remote, &len);
+  buff[len] = '\0';
+
+  //echo msg
+  sendto(fd,buff,buff_len,0,(struct sockaddr *)&remote,len);
+
+  //log msg
+  log(buff, buff_len);
 }
 
 //waits with no hang to prevent zombie processes
@@ -35,16 +61,15 @@ void SigCatcher(int n) {
 }
 
 int main(int argc, char *argv[]) {
-     int tcp_fd, udp_fd, newsockfd, portno;
-     socklen_t clilen;
+     //buffer for recieved messages
      int buffer_length = 256;
      char buffer[buffer_length];
+
+     int tcp_fd, udp_fd, newsockfd, portno;
+     socklen_t clilen;
      struct sockaddr_in serv_addr, cli_addr;
      int n, pid;
      fd_set fset;
-
-     //hard-coded port for server -> log_server communication
-     int log_portno = 9999;
 
      //check for command line arguments
      if (argc < 2) {
@@ -105,12 +130,7 @@ int main(int argc, char *argv[]) {
                    error("ERROR on accept");
               if ((pid = fork()) == 0) //error on fork
               {
-                   bzero(buffer,256);
-                   n = read(newsockfd,buffer,255);
-                   if (n < 0)
-                        error("ERROR reading from socket");
-                   doStuffTCP(buffer);
-                   close(newsockfd);
+                   doStuffTCP(newsockfd, buffer, buffer_length);
                    exit(0);
               }
               close(newsockfd);
@@ -118,18 +138,11 @@ int main(int argc, char *argv[]) {
           }
           //if udp is set
           if (FD_ISSET(udp_fd, &fset)) {
-              bzero(buffer,buffer_length);
-              int length = recvfrom(udp_fd, buffer, sizeof(buffer) - 1, 0, NULL, 0);
-              if (length < 0)
-                   error("ERROR on recv");
-
               if ((pid = fork()) == 0)
               {
-                   buffer[length] = '\0';
-                   doStuffUDP(buffer);
+                   doStuffUDP(udp_fd, buffer, buffer_length);
                    exit(0);
               }
-              length = -1;
         }
      }
      close(tcp_fd);
