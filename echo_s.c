@@ -19,12 +19,12 @@ void error(const char *msg) {
      exit(1);
 }
 
-void doStuffTCP(char *buff[]) {
+void doStuffTCP(char buff[]) {
      //implement echo
      //log message
 }
 
-void doStuffUDP(char *buff[]) {
+void doStuffUDP(char buff[]) {
      //implement echo
      //log message
 }
@@ -39,8 +39,8 @@ int main(int argc, char *argv[]) {
      socklen_t clilen;
      int buffer_length = 256;
      char buffer[buffer_length];
-     struct sockaddr_in serv_addr_tcp, serv_addr_udp;
-     int n, pid;
+     struct sockaddr_in serv_addr_tcp, serv_addr_udp, cli_addr;
+     int n, pid, num_ready;
      fd_set fset;
 
      //hard-coded port for server -> log_server communication
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
 
      //reset the fd_set
      FD_ZERO(&fset);
-     int maxfd = max(tcp_fd, udp_fd) + 1;
+     int maxfd = tcp_fd > udp_fd ? tcp_fd+1 : udp_fd+1;
      while(1) {
           //add the two sockets to the fd_set
           FD_SET(tcp_fd, &fset);
@@ -104,17 +104,17 @@ int main(int argc, char *argv[]) {
           //if tcp is set
           if (FD_ISSET(tcp_fd, &fset)) {
               clilen = sizeof(cli_addr);
-              newsockfd = accept(sockfd,(struct sockaddr *) &cli_addr,&clilen);
+              newsockfd = accept(tcp_fd,(struct sockaddr *) &cli_addr,&clilen);
               if (newsockfd < 0)
                    error("ERROR on accept");
               if ((pid = fork()) == 0) //error on fork
               {
-                   close(tcp_fd);
                    bzero(buffer,256);
                    n = read(newsockfd,buffer,255);
                    if (n < 0)
                         error("ERROR reading from socket");
                    doStuffTCP(buffer);
+                   close(newsockfd);
                    exit(0);
               }
               close(newsockfd);
@@ -123,14 +123,15 @@ int main(int argc, char *argv[]) {
           //if udp is set
           if (FD_ISSET(udp_fd, &fset)) {
               bzero(buffer,buffer_length);
-              length = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0, NULL, 0);
+              int length = recvfrom(udp_fd, buffer, sizeof(buffer) - 1, 0, NULL, 0);
               if (length < 0)
                    error("ERROR on recv");
 
               if ((pid = fork()) == 0)
               {
-                   buffer[length] = "\0";
+                   buffer[length] = '\0';
                    doStuffUDP(buffer);
+                   exit(0);
               }
               length = -1;
         }
