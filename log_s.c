@@ -71,7 +71,6 @@ int main(int argc, char *argv[]) {
           if (length < 0)
                error("ERROR on recv");
           if ((pid = fork())) == 0) { //child process
-               close(sockfd);
                buffer[length] = "\0";
                log(buffer);
                exit(0);
