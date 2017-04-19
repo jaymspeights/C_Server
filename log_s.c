@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <time.h>
+#include <fcntl.h>
 
 void error(const char *msg) {
      perror(msg);
@@ -21,7 +22,7 @@ void SigCatcher(int n) {
 }
 
 //logs char array to file
-void log(char *buff[]) {
+void log(char buff[]) {
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
     printf("%d-%d-%d %d:%d:%d\t%s\n",
@@ -57,7 +58,7 @@ int main(int argc, char *argv[]) {
           error("ERROR on binding");
 
      //changes stdout to output to this file
-     int log_fd = open("echo.log", O_W | O_CREAT, S_IRUSR)
+     int log_fd = open("echo.log", O_RDWR | O_CREAT, S_IRUSR);
      dup2(log_fd, 1);
 
      int length;
@@ -67,11 +68,11 @@ int main(int argc, char *argv[]) {
           bzero(buffer,buffer_length);
           length = recvfrom(sockfd, buffer,
                       sizeof(buffer) - 1,
-                      0, NULL, 0;
+                      0, NULL, 0);
           if (length < 0)
                error("ERROR on recv");
-          if ((pid = fork())) == 0) { //child process
-               buffer[length] = "\0";
+          if ((pid = fork()) == 0) { //child process
+               buffer[length] = '\0';
                log(buffer);
                exit(0);
           }
