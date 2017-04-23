@@ -51,7 +51,8 @@ void doStuffUDP(int fd, char buff[], int buff_len) {
 
 //logs the data to the log server
 void log(char buff[]){
-  //to be implemented
+     struct sockaddr_in remote;
+     sendto(gethostbyname("localhost"), buff, buff.length-1, (struct sockaddr *)&remote, sizeof(remote));
 }
 
 //waits with no hang to prevent zombie processes
