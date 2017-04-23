@@ -52,7 +52,9 @@ void doStuffUDP(int fd, char buff[], int buff_len) {
 //logs the data to the log server
 void log(char buff[]){
      struct sockaddr_in remote;
-     sendto(gethostbyname("localhost"), buff, buff.length-1, (struct sockaddr *)&remote, sizeof(remote));
+     int socket = socket(gethostbyname("localhost"), SOCK_STREAM, 0);
+     bind(socket, 9999, 2)
+     sendto(socket, buff, buff.length-1, (struct sockaddr *)&remote, sizeof(remote));
 }
 
 //waits with no hang to prevent zombie processes
