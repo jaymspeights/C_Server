@@ -1,4 +1,5 @@
 //Supplementary functions for client.c
+//Written by James Speights
 
 #include <stdio.h>
 #include <sys/types.h>
