@@ -1,4 +1,5 @@
 //Supplementary functions for echo_s_functions.c
+//Written by Logan Padon and James Speights
 
 #include <stdio.h>
 #include <signal.h>
