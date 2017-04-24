@@ -1,5 +1,6 @@
 /* A simple echo server in the internet domain using TCP and UDP
-   The port number is passed as an argument */
+   The port number is passed as an argument 
+   Written by Bailey Miller*/
 
 #include <stdio.h>
 #include <signal.h>
