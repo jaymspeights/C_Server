@@ -1,5 +1,6 @@
 //A simple client that can comminucate through TCP or UDP
 //Run the executable with arguments [hostname] [port]
+//Written by James Speights
 
 #include <stdio.h>
 #include <sys/types.h>
