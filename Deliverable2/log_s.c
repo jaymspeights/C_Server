@@ -1,4 +1,5 @@
-/* UDP Log server for logging communication to echo.log*/
+/* UDP Log server for logging communication to echo.log
+   Written by James Speights*/
 #include <stdio.h>
 #include <signal.h>
 #include <sys/wait.h>
